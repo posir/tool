@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>域名格式化工具</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://fastly.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 1rem;
+        }
+        .tool-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,.05);
+            margin-bottom: 1rem;
+        }
+        .tool-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        .tool-header h1 {
+            font-size: 1.5rem;
+            margin: 0;
+            color: #333;
+        }
+        .tool-header p {
+            margin: 0.5rem 0 0;
+            color: #6c757d;
+        }
+        .tool-body {
+            padding: 1.5rem;
+        }
+        .tool-settings {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .tool-settings h3 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: #495057;
+        }
+        .input-output-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .input-area, .output-area {
+            flex: 1;
+        }
+        .form-control {
+            border-radius: 6px;
+        }
+        textarea.form-control {
+            min-height: 200px;
+            resize: vertical;
+        }
+        .tool-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 6px;
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+        .alert {
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        .tool-result {
+            margin-top: 1rem;
+        }
+        .tool-result pre {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 0;
+        }
+        .settings-row {
+            display: flex;
+            gap: 1rem;
+            align-items: end;
+        }
+        .settings-row .form-group {
+            flex: 1;
+        }
+        .example-text {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-10">
+                <div class="tool-card">
+                    <!-- 工具头部 -->
+                    <div class="tool-header">
+                        <h1><i class="fas fa-globe me-2"></i>域名格式化工具</h1>
+                        <p>批量处理域名，添加前缀并格式化输出</p>
+                    </div>
+                    
+                    <!-- 工具主体 -->
+                    <div class="tool-body">
+                        <!-- 工具设置 -->
+                        <div class="tool-settings">
+                            <h3><i class="fas fa-cog me-2"></i>格式化设置</h3>
+                            <div class="settings-row">
+                                <div class="form-group">
+                                    <label class="form-label">前缀设置</label>
+                                    <input type="text" class="form-control" id="prefixInput" value="www" placeholder="输入前缀">
+                                    <div class="example-text">例如：www、api、cdn 等</div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">输出格式</label>
+                                    <select class="form-select" id="outputFormat">
+                                        <option value="lines">每行一个</option>
+                                        <option value="space">单行空格分隔</option>
+                                        <option value="comma">逗号分隔</option>
+                                        <option value="custom">自定义分隔符</option>
+                                    </select>
+                                    <div class="example-text">选择一个输出格式</div>
+                                </div>
+                                <div class="form-group" id="customSeparatorGroup" style="display: none;">
+                                    <label class="form-label">自定义分隔符</label>
+                                    <input type="text" class="form-control" id="customSeparator" placeholder="输入分隔符">
+                                    <div class="example-text">输入您需要的分隔符</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 输入输出区域 -->
+                        <div class="input-output-container">
+                            <div class="input-area">
+                                <label class="form-label"><i class="fas fa-arrow-down me-2"></i>输入域名</label>
+                                <textarea class="form-control" id="inputDomains" placeholder="请输入域名，每行一个&#10;例如：&#10;abc.com&#10;ddd.com&#10;example.org"></textarea>
+                            </div>
+                            <div class="output-area">
+                                <label class="form-label"><i class="fas fa-arrow-up me-2"></i>格式化结果</label>
+                                <textarea class="form-control" id="outputResult" readonly placeholder="格式化后的结果将显示在这里..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- 操作按钮 -->
+                        <div class="tool-actions">
+                            <button class="btn btn-primary" id="formatBtn">
+                                <i class="fas fa-magic me-2"></i>格式化
+                            </button>
+                            <button class="btn btn-outline-secondary" id="copyBtn" disabled>
+                                <i class="fas fa-copy me-2"></i>复制结果
+                            </button>
+                            <button class="btn btn-outline-secondary" id="clearBtn">
+                                <i class="fas fa-redo me-2"></i>清空
+                            </button>
+                        </div>
+                        
+                        <!-- 结果统计 -->
+                        <div class="tool-result" id="resultStats" style="display: none;">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <span id="statsText"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript 依赖 -->
+    <script src="https://fastly.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+    <script src="https://fastly.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // 输出格式变化时显示/隐藏自定义分隔符输入框
+            $('#outputFormat').change(function() {
+                if ($(this).val() === 'custom') {
+                    $('#customSeparatorGroup').show();
+                } else {
+                    $('#customSeparatorGroup').hide();
+                }
+            });
+
+            // 格式化按钮点击事件
+            $('#formatBtn').click(function() {
+                formatDomains();
+            });
+
+            // 复制按钮点击事件
+            $('#copyBtn').click(function() {
+                copyToClipboard();
+            });
+
+            // 清空按钮点击事件
+            $('#clearBtn').click(function() {
+                $('#inputDomains').val('');
+                $('#outputResult').val('');
+                $('#resultStats').hide();
+                $('#copyBtn').prop('disabled', true);
+            });
+
+            // 输入框回车键触发格式化
+            $('#inputDomains').keydown(function(e) {
+                if (e.ctrlKey && e.keyCode === 13) {
+                    formatDomains();
+                }
+            });
+
+            // 格式化域名函数
+            function formatDomains() {
+                const input = $('#inputDomains').val().trim();
+                if (!input) {
+                    showAlert('请输入域名', 'warning');
+                    return;
+                }
+
+                const prefix = $('#prefixInput').val().trim();
+                const outputFormat = $('#outputFormat').val();
+                const customSeparator = $('#customSeparator').val();
+
+                // 解析输入的域名
+                const domains = input.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0)
+                    .map(domain => {
+                        // 移除可能存在的协议前缀
+                        domain = domain.replace(/^https?:\/\//, '');
+                        // 移除可能存在的www前缀
+                        domain = domain.replace(/^www\./, '');
+                        return domain;
+                    });
+
+                if (domains.length === 0) {
+                    showAlert('未找到有效的域名', 'warning');
+                    return;
+                }
+
+                // 添加前缀
+                const formattedDomains = domains.map(domain => {
+                    if (prefix) {
+                        return prefix + '.' + domain;
+                    }
+                    return domain;
+                });
+
+                // 根据输出格式处理
+                let result;
+                switch (outputFormat) {
+                    case 'lines':
+                        result = formattedDomains.join('\n');
+                        break;
+                    case 'space':
+                        result = formattedDomains.join(' ');
+                        break;
+                    case 'comma':
+                        result = formattedDomains.join(', ');
+                        break;
+                    case 'custom':
+                        const separator = customSeparator || ' ';
+                        result = formattedDomains.join(separator);
+                        break;
+                    default:
+                        result = formattedDomains.join('\n');
+                }
+
+                // 显示结果
+                $('#outputResult').val(result);
+                $('#copyBtn').prop('disabled', false);
+                
+                // 显示统计信息
+                showStats(domains.length, formattedDomains.length);
+            }
+
+            // 复制到剪贴板
+            function copyToClipboard() {
+                const output = $('#outputResult').val();
+                if (!output) {
+                    showAlert('没有可复制的内容', 'warning');
+                    return;
+                }
+
+                navigator.clipboard.writeText(output).then(function() {
+                    showAlert('已复制到剪贴板！', 'success');
+                }).catch(function(err) {
+                    // 降级方案
+                    const textArea = document.createElement('textarea');
+                    textArea.value = output;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showAlert('已复制到剪贴板！', 'success');
+                });
+            }
+
+            // 显示统计信息
+            function showStats(inputCount, outputCount) {
+                const statsText = `处理完成：输入 ${inputCount} 个域名，输出 ${outputCount} 个格式化域名`;
+                $('#statsText').text(statsText);
+                $('#resultStats').show();
+            }
+
+            // 显示提示信息
+            function showAlert(message, type) {
+                const alertHtml = `
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+                $('.tool-body').prepend(alertHtml);
+                
+                // 3秒后自动消失
+                setTimeout(function() {
+                    $('.alert').alert('close');
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html> 
